@@ -5,16 +5,26 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
+import { toast } from '@/components/ui/use-toast';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 
-interface LoginFormValues {
-  email: string;
-  password: string;
-}
+const loginSchema = z.object({
+  email: z.string().email({ message: 'Please enter a valid email address' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const { signIn } = useAuth();
+  const router = useRouter();
 
   const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
       password: '',
@@ -23,12 +33,32 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
-    // This would be replaced with actual authentication logic
-    console.log('Login data:', data);
-    setTimeout(() => {
+    try {
+      const { error } = await signIn(data.email, data.password);
+      
+      if (error) {
+        toast({
+          title: 'Login failed',
+          description: error.message,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Login successful',
+          description: 'You have been logged in successfully',
+        });
+        router.push('/polls');
+      }
+    } catch (error) {
+      toast({
+        title: 'Login failed',
+        description: 'An unexpected error occurred',
+        variant: 'destructive',
+      });
+      console.error('Login error:', error);
+    } finally {
       setIsLoading(false);
-      // Redirect would happen here after successful login
-    }, 1000);
+    }
   };
 
   return (
