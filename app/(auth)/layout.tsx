@@ -1,0 +1,14 @@
+import { MainNav } from '@/components/layout/main-nav';
+
+export default function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <MainNav />
+      <main className="flex-1">{children}</main>
+    </div>
+  );
+}
