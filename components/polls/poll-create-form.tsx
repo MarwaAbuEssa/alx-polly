@@ -4,13 +4,30 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 
 interface PollOption {
   id: string;
   text: string;
 }
+import * as z from "zod";
+
+const pollFormSchema = z.object({
+  title: z.string()
+    .min(3, "Title must be at least 3 characters")
+    .max(100, "Title must not exceed 100 characters")
+    .nonempty("Title is required"),
+  description: z.string(),
+  options: z.array(
+    z.object({
+      id: z.string(),
+      text: z.string()
+    })
+  )
+});
+
+type PollFormSchema = z.infer<typeof pollFormSchema>;
 
 interface PollFormValues {
   title: string;
@@ -33,7 +50,10 @@ export function PollCreateForm() {
     },
   });
 
-  const { fields, append, remove } = form.watch('options');
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "options"
+  });
 
   const onSubmit = async (data: PollFormValues) => {
     setIsSubmitting(true);
@@ -47,13 +67,11 @@ export function PollCreateForm() {
   };
 
   const addOption = () => {
-    const options = form.getValues('options');
-    append({ id: `${options.length + 1}`, text: '' });
+    append({ id: `${fields.length + 1}`, text: '' });
   };
 
   const removeOption = (index: number) => {
-    const options = form.getValues('options');
-    if (options.length > 2) {
+    if (fields.length > 2) {
       remove(index);
     }
   };
@@ -99,15 +117,15 @@ export function PollCreateForm() {
             Add at least 2 options for people to choose from.
           </FormDescription>
 
-          {form.watch('options').map((option, index) => (
-            <div key={option.id} className="flex items-center gap-2">
+          {fields.map((field, index) => (
+            <div key={field.id} className="flex items-center gap-2">
               <FormField
                 control={form.control}
                 name={`options.${index}.text`}
-                render={({ field }) => (
+                render={({ field: inputField }) => (
                   <FormItem className="flex-grow">
                     <FormControl>
-                      <Input placeholder={`Option ${index + 1}`} {...field} />
+                      <Input placeholder={`Option ${index + 1}`} {...inputField} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -118,7 +136,7 @@ export function PollCreateForm() {
                 variant="ghost"
                 size="sm"
                 onClick={() => removeOption(index)}
-                disabled={form.watch('options').length <= 2}
+                disabled={fields.length <= 2}
               >
                 Remove
               </Button>
