@@ -64,7 +64,10 @@ export function PollList() {
           </CardContent>
           <CardFooter>
             <Link href={`/polls/${poll.id}`} className="w-full">
-              <Button variant="outline" className="w-full">View Poll</Button>
+                <Button variant="outline" className="w-full">View Poll</Button>
+              </Link>
+              <Link href={`/dashboard/polls/${poll.id}/results`} className="w-full mt-2">
+                <Button className="w-full">View Results</Button>
             </Link>
           </CardFooter>
         </Card>

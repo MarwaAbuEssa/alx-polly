@@ -28,17 +28,17 @@ export const createServerSideClient = () => {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (name) => {
+        get: async (name) => {
           // In Next.js App Router, cookies() is synchronous in Server Components
-          return cookies().get(name)?.value;
+          return (await cookies()).get(name)?.value;
         },
-        set: (name, value, options) => {
+        set: async (name, value, options) => {
           // In Next.js App Router, cookies() is synchronous in Server Components
-          cookies().set(name, value, options);
+          (await cookies()).set(name, value, options);
         },
-        remove: (name, options) => {
+        remove: async (name, options) => {
           // In Next.js App Router, cookies() is synchronous in Server Components
-          cookies().delete(name, options);
+          (await cookies()).delete(name, options);
         },
       },
     }
@@ -74,4 +74,45 @@ export const getUser = async () => {
   const supabase = createBrowserClient();
   const response = await supabase.auth.getUser();
   return response.data?.user;
+};
+
+export const fetchPollResults = async (pollId: string) => {
+  const supabase = createServerSideClient();
+  
+  // Fetch poll data
+  const { data: pollData, error: pollError } = await supabase
+    .from('polls')
+    .select('*')
+    .eq('id', pollId)
+    .single();
+
+  if (pollError) throw pollError;
+
+  // Fetch votes for this poll
+  const { data: votesData, error: votesError } = await supabase
+    .from('votes')
+    .select('option_id')
+    .eq('poll_id', pollId);
+
+  if (votesError) throw votesError;
+
+  // Count votes per option
+
+  const voteCounts = votesData.reduce((acc, vote) => {
+    acc[vote.option_id] = (acc[vote.option_id] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Format results for chart
+
+  // Assuming options column in polls table is an array of objects: 
+  // { id: string, question: string }[]
+  const totalVotes = Object.values(voteCounts).reduce((sum, count) => sum + count, 0);
+
+  return pollData.options.map((option: { id: string; text: string }) => ({
+
+    id: option.id,
+    value: voteCounts[option.id] || 0, 
+    label: `${option.text} (${((voteCounts[option.id] || 0) / totalVotes * 100).toFixed(1)}%)`
+  }));
 };

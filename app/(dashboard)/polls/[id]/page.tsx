@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button';
 import { PollVoteForm } from '@/components/polls/poll-vote-form';
 import { PollResults } from '@/components/polls/poll-results';
 
-export default function PollDetailPage({ params }: { params: { id: string } }) {
+export default function PollDetailPage({ params }: { params: { pollId: string } }) {
   const [hasVoted, setHasVoted] = useState(false);
   
   // This would be replaced with actual data fetching
   const mockPoll = {
-    id: params.id,
+    pollId: params.pollId,
     title: 'What is your favorite programming language?',
     description: 'Please vote for your preferred programming language',
     options: [
@@ -40,9 +40,9 @@ export default function PollDetailPage({ params }: { params: { id: string } }) {
         </CardHeader>
         <CardContent>
           {hasVoted ? (
-            <PollResults poll={mockPoll} />
+            <PollResults poll={{ ...mockPoll, id: mockPoll.pollId }} />
           ) : (
-            <PollVoteForm poll={mockPoll} onVote={handleVote} />
+            <PollVoteForm poll={{ ...mockPoll, id: mockPoll.pollId }} onVote={handleVote} />
           )}
         </CardContent>
         <CardFooter className="flex justify-between">
