@@ -17,13 +17,13 @@ export function MainNav() {
   const isLoggedIn = !!user;
 
   return (
-    <nav className="border-b bg-background">
+    <nav className="border-b border-green-500 bg-black">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center space-x-4">
           <Link href="/" className="font-bold text-xl">{appName}</Link>
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/polls">
-              <Button variant={pathname.includes('/polls') ? 'default' : 'ghost'}>Polls</Button>
+            <Link href="/analytics">
+              <Button variant={pathname.includes('/analytics') ? 'default' : 'ghost'} className="text-green-500 hover:text-green-700">Analytics</Button>
             </Link>
           </div>
         </div>

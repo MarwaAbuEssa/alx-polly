@@ -1,8 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import { createServerClient } from '@supabase/ssr';
 
-// Types
-type SupabaseClient = ReturnType<typeof createClient>;
+
 
 // Create a Supabase client for browser-side usage
 export const createBrowserClient = () => {
@@ -19,27 +17,13 @@ export const createBrowserClient = () => {
 
 // Create a Supabase client for server-side usage
 export const createServerSideClient = () => {
-  // Dynamic import for server-side only
-  // This ensures 'next/headers' is only imported on the server
-  const { cookies } = require('next/headers');
-  
-  return createServerClient(
+  return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      cookies: {
-        get: async (name) => {
-          // In Next.js App Router, cookies() is synchronous in Server Components
-          return (await cookies()).get(name)?.value;
-        },
-        set: async (name, value, options) => {
-          // In Next.js App Router, cookies() is synchronous in Server Components
-          (await cookies()).set(name, value, options);
-        },
-        remove: async (name, options) => {
-          // In Next.js App Router, cookies() is synchronous in Server Components
-          (await cookies()).delete(name, options);
-        },
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
       },
     }
   );
@@ -49,7 +33,7 @@ export const createServerSideClient = () => {
 export const signUp = async (params: {
   email: string;
   password: string;
-  options?: { data?: Record<string, any> };
+  options?: { data?: Record<string, unknown> };
 }) => {
   const supabase = createBrowserClient();
   return supabase.auth.signUp(params);

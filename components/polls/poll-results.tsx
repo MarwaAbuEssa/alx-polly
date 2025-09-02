@@ -1,8 +1,7 @@
 'use client';
 
-'use client';
-
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { BarChartComponent } from './bar-chart-component';
 import { Poll } from '@/lib/types';
 
 interface PollResultData {
@@ -45,10 +44,18 @@ export function PieChartComponent({ data }: PieChartComponentProps) {
 
 interface PollBarChartResultsProps {
   poll: Poll;
+  initialVotes: { option_id: string; count: number }[];
 }
 
-export function PollResults({ poll }: PollBarChartResultsProps) {
-  const totalVotes = poll.options.reduce((sum, option) => sum + option.votes, 0);
+export function PollResults({ poll, initialVotes }: PollBarChartResultsProps) {
+  const totalVotes = initialVotes.reduce((sum, vote) => sum + vote.count, 0);
+
+  const chartData = poll.options.map(option => ({
+    name: option.text,
+    value: initialVotes.find(vote => vote.option_id === option.id)?.count || 0,
+    id: parseInt(option.id),
+    label: option.text,
+  }));
 
   return (
     <div className="space-y-4">
@@ -59,24 +66,29 @@ export function PollResults({ poll }: PollBarChartResultsProps) {
           
           return (
             <div key={option.id} className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span>{option.text}</span>
-                <span className="font-medium">{percentage}%</span>
+                <div className="flex justify-between text-sm">
+                  <span>{option.text}</span>
+                  <span className="font-medium">{percentage}%</span>
+               </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary"
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">{option.votes} votes</p>
               </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary"
-                  style={{ width: `${percentage}%` }}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">{option.votes} votes</p>
-            </div>
-          );
-        })}
-      </div>
-      <p className="text-sm text-muted-foreground pt-2">
-        Total votes: {totalVotes}
-      </p>
+            );
+          })}
+        </div>
+        <div className="mt-8">
+          <h3 className="text-lg font-medium mb-4">Visual Representation</h3>
+          <PieChartComponent data={chartData} />
+          <BarChartComponent data={chartData} />
+        </div>
+        <p className="text-sm text-muted-foreground pt-2">
+          Total votes: {totalVotes}
+         </p>
     </div>
   );
 }
