@@ -6,6 +6,25 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Testing
+
+During development, modifications were made to the `PollCreateForm` component to include required validation for the poll question and options. This required updates to the corresponding unit and integration tests.
+
+Specifically:
+- The `PollCreateForm` component in <mcfile name="components/polls/poll-create-form.tsx" path="components/polls/poll-create-form.tsx"></mcfile> was updated to use `zod` for schema validation, ensuring the `title` field (Poll Question) and `options.text` fields are required.
+- The unit tests in <mcfile name="app/polls/__tests__/PollCreateForm.test.tsx" path="app/polls/__tests__/PollCreateForm.test.tsx"></mcfile> and integration tests in <mcfile name="app/polls/__tests__/integration/PollCreateForm.integration.test.tsx" path="app/polls/__tests__/integration/PollCreateForm.integration.test.tsx"></mcfile> were updated to reflect these validation changes.
+- A recurring `ReferenceError: React is not defined` in the test files was resolved by ensuring `import React from 'react';` was correctly placed at the top of both `PollCreateForm.test.tsx` and `PollCreateForm.integration.test.tsx`.
+
+To run the tests, use the following command:
+
+```bash
+npm test
+```
+
+This will execute all unit and integration tests, verifying the form's functionality and validation rules.
+
+
+
 ### Environment Variables
 
 Before running the application, you need to set up your environment variables. Create a `.env.local` file in the root directory with the following variables:

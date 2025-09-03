@@ -1,9 +1,13 @@
 import { createServerSideClient, fetchPollResults } from '@/lib/supabase';
 import PollClientPage from '@/components/polls/poll-client-page';
 
-export default async function PollDetailPage({ params }: { params: { pollId: string } }) {
+interface PollDetailPageProps {
+  params: { id: string };
+}
+
+export default async function PollDetailPage({ params }: PollDetailPageProps) {
   const supabase = createServerSideClient();
-  const { data: poll, error } = await supabase.from('polls').select('*').eq('id', params.pollId).single();
+  const { data: poll, error } = await supabase.from('polls').select('*').eq('id', params.id).single();
 
   if (error) {
     console.error('Error fetching poll:', error);
@@ -14,7 +18,7 @@ export default async function PollDetailPage({ params }: { params: { pollId: str
     return <div>Poll not found.</div>;
   }
 
-  const initialVotes = await fetchPollResults(params.pollId);
+  const initialVotes = await fetchPollResults(params.id);
 
   return (
     <PollClientPage initialPoll={poll} initialVotes={initialVotes} />

@@ -6,40 +6,33 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 interface PollOption {
   id: string;
   text: string;
 }
-import * as z from "zod";
+import { z } from 'zod';
 
-const pollFormSchema = z.object({
-  title: z.string()
-    .min(3, "Title must be at least 3 characters")
-    .max(100, "Title must not exceed 100 characters")
-    .nonempty("Title is required"),
-  description: z.string(),
+const formSchema = z.object({
+  title: z.string().min(1, { message: "Poll question is required." }),
+  description: z.string().optional(),
   options: z.array(
     z.object({
       id: z.string(),
-      text: z.string()
+      text: z.string().min(1, { message: "Option text is required." }),
     })
-  )
+  ).min(2, { message: "Please add at least two options." }),
 });
 
-type PollFormSchema = z.infer<typeof pollFormSchema>;
-
-interface PollFormValues {
-  title: string;
-  description: string;
-  options: PollOption[];
-}
+type PollFormValues = z.infer<typeof formSchema>;
 
 export function PollCreateForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<PollFormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       title: '',
       description: '',
@@ -58,7 +51,6 @@ export function PollCreateForm() {
   const onSubmit = async (data: PollFormValues) => {
     setIsSubmitting(true);
     // This would be replaced with actual poll creation logic
-    console.log('Poll data:', data);
     setTimeout(() => {
       setIsSubmitting(false);
       // Redirect to polls page after successful creation
@@ -84,7 +76,7 @@ export function PollCreateForm() {
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Poll Question</FormLabel>
+              <FormLabel>Questions</FormLabel>
               <FormControl>
                 <Input placeholder="What is your favorite programming language?" {...field} />
               </FormControl>
@@ -144,7 +136,7 @@ export function PollCreateForm() {
           ))}
         </div>
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
+        <Button type="submit"  className="w-full" disabled={isSubmitting}>
           {isSubmitting ? 'Creating Poll...' : 'Create Poll'}
         </Button>
       </form>
